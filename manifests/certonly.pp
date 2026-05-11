@@ -153,16 +153,16 @@ define letsencrypt::certonly (
   }
 
   include letsencrypt::scripts
-  if $letsencrypt::manage_config {
+  if $profile == 'cli' {
+    $config_arg = undef
+    $config_require = []
+  } else {
     if !defined(Letsencrypt::Profile[$profile]) {
-      fail("The '${profile}' letsencrypt::profile must be defined if 'manage_config' is true")
+      fail("The '${profile}' letsencrypt::profile must be defined")
     }
     $config_file = getparam(Letsencrypt::Profile[$profile], 'config_file')
     $config_arg = "--config ${config_file}"
     $config_require = [Letsencrypt::Profile[$profile]]
-  } else {
-    $config_arg = undef
-    $config_require = []
   }
 
   # Wildcard-less title for use in file paths

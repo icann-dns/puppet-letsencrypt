@@ -19,8 +19,7 @@ class letsencrypt::config (
 
   ensure_resource('file', $config_dir, { ensure => directory })
 
-  file { $letsencrypt::cron_scripts_path:
-    ensure => directory,
+  File[$letsencrypt::cron_scripts_path] {
     purge  => true,
   }
 

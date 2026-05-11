@@ -15,6 +15,8 @@ class letsencrypt::install (
   assert_private()
 
   ensure_resource('file', $letsencrypt::config_dir, { ensure => directory })
+  ensure_resource('file', $letsencrypt::cron_scripts_path, { ensure => directory })
+
   package { 'letsencrypt':
     ensure => $package_ensure,
     name   => $package_name,

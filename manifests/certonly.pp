@@ -121,9 +121,10 @@
 #                       Example: "example.com www.example.com"
 #
 # @param cert_name the common name used for the certificate
-#
+# @param profile an optional profile to use for this certificate. If not specified, the default CLI profile will be used.
 define letsencrypt::certonly (
   Enum['present','absent']                  $ensure               = 'present',
+  String[1]                                 $profile              = 'cli',
   Array[String[1]]                          $domains              = [$title],
   String[1]                                 $cert_name            = $domains[0],
   Boolean                                   $custom_plugin        = false,
@@ -152,6 +153,17 @@ define letsencrypt::certonly (
   }
 
   include letsencrypt::scripts
+  if $letsencrypt::manage_config {
+    if !defined(Letsencrypt::Profile[$profile]) {
+      fail("The '${profile}' letsencrypt::profile must be defined if 'manage_config' is true")
+    }
+    $config_file = getparam(Letsencrypt::Profile[$profile], 'config_file')
+    $config_arg = "--config ${config_file}"
+    $config_require = [Letsencrypt::Profile[$profile]]
+  } else {
+    $config_arg = undef
+    $config_require = []
+  }
 
   # Wildcard-less title for use in file paths
   $title_nowc = regsubst($title, '^\*\.', '')
@@ -296,6 +308,7 @@ define letsencrypt::certonly (
     [
       $letsencrypt_command,
       $default_args,
+      $config_arg,
       $plugin_args,
       $hook_args,
       $additional_args,
@@ -321,7 +334,7 @@ define letsencrypt::certonly (
     provider    => 'shell',
     require     => [
       File['/usr/local/sbin/letsencrypt-domain-validation'],
-    ],
+    ] + $config_require,
   }
   # lint:endignore
 

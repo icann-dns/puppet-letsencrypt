@@ -7,12 +7,14 @@
 # @api private
 #
 class letsencrypt::install (
+  # TODO: as this is a private class, we can remove the parameters and define the variables in the class body.
   Boolean $configure_epel = $letsencrypt::configure_epel,
   String $package_name = $letsencrypt::package_name,
   String $package_ensure = $letsencrypt::package_ensure,
 ) {
   assert_private()
 
+  ensure_resource('file', $letsencrypt::config_dir, { ensure => directory })
   package { 'letsencrypt':
     ensure => $package_ensure,
     name   => $package_name,

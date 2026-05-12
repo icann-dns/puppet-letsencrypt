@@ -169,16 +169,25 @@ define letsencrypt::certonly (
   $title_nowc = regsubst($title, '^\*\.', '')
 
   if $ensure == 'present' {
-    $key_args = if $key_type == 'rsa' {
+    # ICANN Hack to support focal
+    if $facts['os']['distro']['codename'] == 'focal' {
+      $_key_type = 'rsa'
+      $key_type_arg = ''
+    } else {
+      $_keytype = $key_type
+      $key_type_arg = ' --key-type ${key_type}'
+    }
+
+    $key_args = if $_key_type == 'rsa' {
       "--rsa-key-size ${key_size}"
     } else {
       "--elliptic-curve ${elliptic_curve}"
     }
 
     $default_args = if ($custom_plugin) {
-      "--text --agree-tos --non-interactive certonly --key-type ${key_type} ${key_args}"
+      "--text --agree-tos --non-interactive certonly ${key_type_arg} ${key_args}"
     } else {
-      "--text --agree-tos --non-interactive certonly --key-type ${key_type} ${key_args} -a ${plugin}"
+      "--text --agree-tos --non-interactive certonly ${key_type_arg} ${key_args} -a ${plugin}"
     }
   } else {
     $default_args = '--text --agree-tos --non-interactive delete'
